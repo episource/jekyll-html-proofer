@@ -15,3 +15,6 @@ Configure html-proofer by adding a **html_proofer** node to your _config.yml. Th
     html_proofer:
       check_favicon: true
       check_html: true
+      file_ignore:
+        - /a.*regexp*/
+        - a_string

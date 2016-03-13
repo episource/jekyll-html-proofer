@@ -5,10 +5,27 @@ module Jekyll
         # run after any other hook
         HIGHEST_PRIORITY = Jekyll::Hooks::PRIORITY_MAP[:high] + 1000
 
+        def self.keys_to_symbols(hash)
+            Hash[hash.map{|(k,v)| [k.to_sym,v]}]
+        end
+
+        def self.parse_regexp_values(strings)
+            strings.map do |v|
+                if v.start_with?('/') && v.end_with?('/') then
+                    Regexp.new(v[1..-2])
+                else
+                    v
+                end
+            end
+        end
+
         Jekyll::Hooks.register(:site, :post_write, priority: HIGHEST_PRIORITY) do |site|
-            # convert string keys to symbols
-            config = site.config['html_proofer'] || {}
-            config = Hash[config.map{|(k,v)| [k.to_sym,v]}]
+            config = keys_to_symbols(site.config['html_proofer'] || {})
+
+            # Convert Regexp values
+            [ :alt_ignore, :file_ignore, :url_ignore ].each do |k|
+                config[k] = parse_regexp_values(config[k] || [])
+            end
             
             begin
                 HTMLProofer.check_directory(site.dest, config).run
